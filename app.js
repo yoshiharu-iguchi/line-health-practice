@@ -63,6 +63,25 @@ function formatReportDateTime() {
   });
 }
 
+// 表示用の日時文字列を、並び替えに使える時刻へ変換します。
+// 日時がない古い練習データは 0 として、同じ状態の中で最後に表示します。
+function getReportTime(report) {
+  if (!report.createdAt) {
+    return 0;
+  }
+
+  const matchedDate = report.createdAt.match(
+    /^(\d{4})\/(\d{2})\/(\d{2})\s(\d{2}):(\d{2})$/
+  );
+
+  if (!matchedDate) {
+    return 0;
+  }
+
+  const [, year, month, day, hour, minute] = matchedDate;
+  return new Date(year, Number(month) - 1, day, hour, minute).getTime();
+}
+
 // フォームのボタンが押されたときに実行する処理です。
 form.addEventListener('submit', (event) => {
   // 本来のフォーム送信によるページ再読み込みを止めます。
@@ -90,9 +109,21 @@ function renderReports() {
   completedCount.textContent = reports.filter((report) => report.status === '対応済み').length;
 
   // 「all」なら全件、それ以外なら対応状態が一致する報告だけを残します。
-  const visibleReports = selectedFilter === 'all'
+  const filteredReports = selectedFilter === 'all'
     ? reports
     : reports.filter((report) => report.status === selectedFilter);
+
+  // コピーを作ってから、未対応を優先し、同じ状態では日時の新しい順へ並べます。
+  const visibleReports = [...filteredReports].sort((first, second) => {
+    const firstStatusOrder = first.status === '未対応' ? 0 : 1;
+    const secondStatusOrder = second.status === '未対応' ? 0 : 1;
+
+    if (firstStatusOrder !== secondStatusOrder) {
+      return firstStatusOrder - secondStatusOrder;
+    }
+
+    return getReportTime(second) - getReportTime(first);
+  });
 
   visibleReports.forEach((report) => {
     const item = document.createElement('li');
