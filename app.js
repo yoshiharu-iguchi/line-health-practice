@@ -48,6 +48,18 @@ function updateFilterButtons() {
   });
 }
 
+// 報告を追加した時刻を、日本で読みやすい形の文字列にします。
+function formatReportDateTime() {
+  return new Date().toLocaleString('ja-JP', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  });
+}
+
 // フォームのボタンが押されたときに実行する処理です。
 form.addEventListener('submit', (event) => {
   // 本来のフォーム送信によるページ再読み込みを止めます。
@@ -78,6 +90,8 @@ function renderReports() {
     const item = document.createElement('li');
     item.className = 'report-item';
 
+    const createdAt = document.createElement('p');
+    createdAt.textContent = `報告日時：${report.createdAt ?? '日時なし'}`;
     const condition = document.createElement('p');
     condition.textContent = `体調：${report.condition}`;
     const attendance = document.createElement('p');
@@ -102,7 +116,7 @@ function renderReports() {
       renderReports();
     });
 
-    item.append(condition, attendance, contactRequest, status, statusButton);
+    item.append(createdAt, condition, attendance, contactRequest, status, statusButton);
     reportList.append(item);
   });
 
@@ -117,6 +131,7 @@ function renderReports() {
 // 確認済みの内容を、匿名の練習用データとして一覧へ追加します。
 addToListButton.addEventListener('click', () => {
   reports.push({
+    createdAt: formatReportDateTime(),
     condition: document.querySelector('#condition').value,
     attendance: document.querySelector('#attendance').value,
     contactRequest: document.querySelector('#contact-request').value,
