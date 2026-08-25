@@ -129,6 +129,16 @@ function renderReports() {
     const item = document.createElement('li');
     item.className = 'report-item';
 
+    const needsAttention = report.condition === '不良'
+      || report.contactRequest === '希望する';
+
+    if (needsAttention) {
+      const attentionBadge = document.createElement('strong');
+      attentionBadge.className = 'attention-badge';
+      attentionBadge.textContent = '要確認';
+      item.append(attentionBadge);
+    }
+
     const createdAt = document.createElement('p');
     createdAt.textContent = `報告日時：${report.createdAt ?? '日時なし'}`;
     const condition = document.createElement('p');
