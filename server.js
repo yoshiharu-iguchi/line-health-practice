@@ -16,6 +16,18 @@ const staticFiles = {
 
 const server = createServer(async (request, response) => {
   const requestUrl = new URL(request.url, `http://${request.headers.host}`);
+
+  // 練習用のAPIです。GETで報告一覧を求められたら、空のJSON配列を返します。
+  // まだPOSTによる受信や保存は行いません。
+  if (request.method === 'GET' && requestUrl.pathname === '/api/reports') {
+    response.writeHead(200, {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Cache-Control': 'no-store'
+    });
+    response.end(JSON.stringify([]));
+    return;
+  }
+
   const requestedFile = staticFiles[requestUrl.pathname];
 
   if (!requestedFile) {
