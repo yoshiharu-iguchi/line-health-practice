@@ -9,6 +9,10 @@ const resetButton = document.querySelector('#reset-button');
 const totalCount = document.querySelector('#total-count');
 const pendingCount = document.querySelector('#pending-count');
 const completedCount = document.querySelector('#completed-count');
+const studentScreen = document.querySelector('#student-screen');
+const teacherScreen = document.querySelector('#teacher-screen');
+const openTeacherButton = document.querySelector('#open-teacher-button');
+const openStudentButton = document.querySelector('#open-student-button');
 
 // localStorage内で、この練習用アプリだけが使う名前です。
 const STORAGE_KEY = 'line-health-practice-data';
@@ -214,6 +218,17 @@ resetButton.addEventListener('click', () => {
   selectedFilter = 'all';
   localStorage.removeItem(STORAGE_KEY);
   renderReports();
+});
+
+// 練習用として、学生用画面と教員用画面の表示だけを切り替えます。
+openTeacherButton.addEventListener('click', () => {
+  studentScreen.hidden = true;
+  teacherScreen.hidden = false;
+});
+
+openStudentButton.addEventListener('click', () => {
+  teacherScreen.hidden = true;
+  studentScreen.hidden = false;
 });
 
 // ページを開いた直後にも、保存済みの一覧と絞り込み条件を表示します。

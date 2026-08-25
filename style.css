@@ -179,6 +179,18 @@ button:focus-visible {
   background: #fdecea;
 }
 
+.screen-switch {
+  display: block;
+  margin: 24px auto 0;
+}
+
+.teacher-notice {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fff7e8;
+  color: #6e4800;
+}
+
 @media (max-width: 480px) {
   .page {
     width: min(100% - 24px, 760px);
