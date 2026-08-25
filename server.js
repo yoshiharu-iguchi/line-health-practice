@@ -6,6 +6,14 @@ import { fileURLToPath } from 'node:url';
 
 const PORT = 3000;
 
+// サーバーが動いている間だけ、匿名の練習報告を入れておく箱です。
+// サーバーを停止すると、この配列の中身は消えます。
+const reports = [];
+
+const validConditions = ['良好', '普通', '不良'];
+const validAttendances = ['参加できる', '相談したい', '参加が難しい'];
+const validContactRequests = ['不要', '希望する'];
+
 // ブラウザから開いてよいファイルだけを、明示的に対応付けます。
 const staticFiles = {
   '/': { file: 'index.html', contentType: 'text/html; charset=utf-8' },
@@ -13,6 +21,41 @@ const staticFiles = {
   '/style.css': { file: 'style.css', contentType: 'text/css; charset=utf-8' },
   '/app.js': { file: 'app.js', contentType: 'text/javascript; charset=utf-8' }
 };
+
+// POSTで届くJSON本文を文字列として読み取る関数です。
+function readRequestBody(request) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    let totalSize = 0;
+
+    request.on('data', (chunk) => {
+      totalSize += chunk.length;
+
+      // 練習用APIなので、大きすぎるデータは受け取りません。
+      if (totalSize > 10_000) {
+        reject(new Error('リクエストが大きすぎます。'));
+        request.destroy();
+        return;
+      }
+
+      chunks.push(chunk);
+    });
+
+    request.on('end', () => {
+      resolve(Buffer.concat(chunks).toString('utf8'));
+    });
+
+    request.on('error', reject);
+  });
+}
+
+// 決められた3項目と選択肢だけかを確認します。
+function isValidReport(report) {
+  return report
+    && validConditions.includes(report.condition)
+    && validAttendances.includes(report.attendance)
+    && validContactRequests.includes(report.contactRequest);
+}
 
 const server = createServer(async (request, response) => {
   const requestUrl = new URL(request.url, `http://${request.headers.host}`);
@@ -24,7 +67,35 @@ const server = createServer(async (request, response) => {
       'Content-Type': 'application/json; charset=utf-8',
       'Cache-Control': 'no-store'
     });
-    response.end(JSON.stringify([]));
+    response.end(JSON.stringify(reports));
+    return;
+  }
+
+  // 練習用のPOST APIです。匿名の練習報告だけを一時的に受け取ります。
+  if (request.method === 'POST' && requestUrl.pathname === '/api/reports') {
+    try {
+      const requestBody = await readRequestBody(request);
+      const report = JSON.parse(requestBody);
+
+      if (!isValidReport(report)) {
+        response.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+        response.end(JSON.stringify({ error: '決められた選択肢を選んでください。' }));
+        return;
+      }
+
+      const practiceReport = {
+        condition: report.condition,
+        attendance: report.attendance,
+        contactRequest: report.contactRequest
+      };
+      reports.push(practiceReport);
+
+      response.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
+      response.end(JSON.stringify(practiceReport));
+    } catch {
+      response.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+      response.end(JSON.stringify({ error: 'JSON形式の報告を送ってください。' }));
+    }
     return;
   }
 
