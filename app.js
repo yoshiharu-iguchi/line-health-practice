@@ -6,6 +6,9 @@ const reportList = document.querySelector('#report-list');
 const emptyListMessage = document.querySelector('#empty-list-message');
 const filterButtons = document.querySelectorAll('.filter-button');
 const resetButton = document.querySelector('#reset-button');
+const totalCount = document.querySelector('#total-count');
+const pendingCount = document.querySelector('#pending-count');
+const completedCount = document.querySelector('#completed-count');
 
 // localStorage内で、この練習用アプリだけが使う名前です。
 const STORAGE_KEY = 'line-health-practice-data';
@@ -80,6 +83,11 @@ form.addEventListener('submit', (event) => {
 // 配列の内容を、教員用の一覧として画面へ表示する関数です。
 function renderReports() {
   reportList.innerHTML = '';
+
+  // 絞り込みの前に、全報告の件数を集計します。
+  totalCount.textContent = reports.length;
+  pendingCount.textContent = reports.filter((report) => report.status === '未対応').length;
+  completedCount.textContent = reports.filter((report) => report.status === '対応済み').length;
 
   // 「all」なら全件、それ以外なら対応状態が一致する報告だけを残します。
   const visibleReports = selectedFilter === 'all'

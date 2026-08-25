@@ -53,6 +53,11 @@
       <section class="card" aria-labelledby="teacher-title">
         <h2 id="teacher-title">教員用：報告を確認する</h2>
         <p>ページを開いている間だけ、匿名の練習用データを表示します。</p>
+        <section class="summary" aria-label="報告の集計">
+          <p>全ての報告数：<strong id="total-count">0</strong></p>
+          <p>未対応の報告数：<strong id="pending-count">0</strong></p>
+          <p>対応済みの報告数：<strong id="completed-count">0</strong></p>
+        </section>
         <div class="filter-buttons" aria-label="対応状態で絞り込む">
           <button class="filter-button is-active" type="button" data-filter="all" aria-pressed="true">全て表示</button>
           <button class="filter-button" type="button" data-filter="未対応" aria-pressed="false">未対応のみ</button>

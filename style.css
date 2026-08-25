@@ -125,6 +125,26 @@ button:focus-visible {
   gap: 8px;
 }
 
+.summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.summary p {
+  margin: 0;
+  padding: 12px;
+  border-radius: 8px;
+  background: #eef7fc;
+  color: var(--navy);
+}
+
+.summary strong {
+  display: block;
+  font-size: 1.5rem;
+}
+
 .filter-button {
   margin-top: 0;
   background: #fff;
@@ -164,5 +184,9 @@ button:focus-visible {
 
   .filter-buttons {
     gap: 4px;
+  }
+
+  .summary {
+    grid-template-columns: 1fr;
   }
 }
