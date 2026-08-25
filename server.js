@@ -140,6 +140,17 @@ const server = createServer(async (request, response) => {
     return;
   }
 
+  // 練習用のDELETE APIです。サーバーのメモリ内にある匿名報告だけを空にします。
+  if (request.method === 'DELETE' && requestUrl.pathname === '/api/reports') {
+    const deletedCount = reports.length;
+    reports.splice(0, reports.length);
+    nextReportId = 1;
+
+    response.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    response.end(JSON.stringify({ deletedCount }));
+    return;
+  }
+
   const requestedFile = staticFiles[requestUrl.pathname];
 
   if (!requestedFile) {
