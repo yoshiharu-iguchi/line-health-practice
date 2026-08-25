@@ -9,6 +9,7 @@ const PORT = 3000;
 // サーバーが動いている間だけ、匿名の練習報告を入れておく箱です。
 // サーバーを停止すると、この配列の中身は消えます。
 const reports = [];
+let nextReportId = 1;
 
 const validConditions = ['良好', '普通', '不良'];
 const validAttendances = ['参加できる', '相談したい', '参加が難しい'];
@@ -84,11 +85,16 @@ const server = createServer(async (request, response) => {
       }
 
       const practiceReport = {
+        // 整理番号、受取時刻、最初の対応状態はサーバーが決めます。
+        id: `practice-report-${nextReportId}`,
+        createdAt: new Date().toISOString(),
+        status: '未対応',
         condition: report.condition,
         attendance: report.attendance,
         contactRequest: report.contactRequest
       };
       reports.push(practiceReport);
+      nextReportId += 1;
 
       response.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
       response.end(JSON.stringify(practiceReport));
