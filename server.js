@@ -14,6 +14,7 @@ let nextReportId = 1;
 const validConditions = ['良好', '普通', '不良'];
 const validAttendances = ['参加できる', '相談したい', '参加が難しい'];
 const validContactRequests = ['不要', '希望する'];
+const validStatuses = ['未対応', '対応済み'];
 
 // ブラウザから開いてよいファイルだけを、明示的に対応付けます。
 const staticFiles = {
@@ -101,6 +102,40 @@ const server = createServer(async (request, response) => {
     } catch {
       response.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
       response.end(JSON.stringify({ error: 'JSON形式の報告を送ってください。' }));
+    }
+    return;
+  }
+
+  // 例：/api/reports/practice-report-1/status のようなURLから整理番号を取り出します。
+  const statusEndpoint = requestUrl.pathname.match(/^\/api\/reports\/([^/]+)\/status$/);
+
+  // 練習用のPATCH APIです。見つけた報告の対応状態だけを変更します。
+  if (request.method === 'PATCH' && statusEndpoint) {
+    try {
+      const requestBody = await readRequestBody(request);
+      const { status } = JSON.parse(requestBody);
+
+      if (!validStatuses.includes(status)) {
+        response.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+        response.end(JSON.stringify({ error: '対応状態は「未対応」か「対応済み」を選んでください。' }));
+        return;
+      }
+
+      const reportId = decodeURIComponent(statusEndpoint[1]);
+      const report = reports.find((savedReport) => savedReport.id === reportId);
+
+      if (!report) {
+        response.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+        response.end(JSON.stringify({ error: '指定された報告が見つかりません。' }));
+        return;
+      }
+
+      report.status = status;
+      response.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      response.end(JSON.stringify(report));
+    } catch {
+      response.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+      response.end(JSON.stringify({ error: 'JSON形式で対応状態を送ってください。' }));
     }
     return;
   }
