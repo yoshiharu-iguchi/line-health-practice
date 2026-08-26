@@ -13,6 +13,8 @@ const studentScreen = document.querySelector('#student-screen');
 const teacherScreen = document.querySelector('#teacher-screen');
 const openTeacherButton = document.querySelector('#open-teacher-button');
 const openStudentButton = document.querySelector('#open-student-button');
+const serverReportList = document.querySelector('#server-report-list');
+const serverReportMessage = document.querySelector('#server-report-message');
 
 // localStorage内で、この練習用アプリだけが使う名前です。
 const STORAGE_KEY = 'line-health-practice-data';
@@ -84,6 +86,77 @@ function getReportTime(report) {
 
   const [, year, month, day, hour, minute] = matchedDate;
   return new Date(year, Number(month) - 1, day, hour, minute).getTime();
+}
+
+// サーバーが記録した共通時刻を、日本で読みやすい形へ変換します。
+function formatServerDateTime(createdAt) {
+  const date = new Date(createdAt);
+
+  if (Number.isNaN(date.getTime())) {
+    return '日時なし';
+  }
+
+  return date.toLocaleString('ja-JP', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'Asia/Tokyo'
+  });
+}
+
+// GET APIへ一覧をお願いし、サーバーにある匿名練習報告を別の一覧へ表示します。
+async function loadServerReports() {
+  serverReportList.innerHTML = '';
+  serverReportMessage.hidden = false;
+  serverReportMessage.textContent = 'サーバーから読み込んでいます。';
+
+  try {
+    const response = await fetch('/api/reports');
+
+    if (!response.ok) {
+      throw new Error('サーバーから正しい返事が届きませんでした。');
+    }
+
+    const serverReports = await response.json();
+
+    if (!Array.isArray(serverReports)) {
+      throw new Error('一覧の形式が正しくありません。');
+    }
+
+    if (serverReports.length === 0) {
+      serverReportMessage.textContent = 'サーバーには練習用の報告がありません。';
+      return;
+    }
+
+    serverReports.forEach((report) => {
+      const item = document.createElement('li');
+      item.className = 'report-item';
+
+      const reportId = document.createElement('p');
+      reportId.textContent = `整理番号：${report.id}`;
+      const createdAt = document.createElement('p');
+      createdAt.textContent = `報告日時：${formatServerDateTime(report.createdAt)}`;
+      const condition = document.createElement('p');
+      condition.textContent = `体調：${report.condition}`;
+      const attendance = document.createElement('p');
+      attendance.textContent = `予定への参加：${report.attendance}`;
+      const contactRequest = document.createElement('p');
+      contactRequest.textContent = `教員からの連絡希望：${report.contactRequest}`;
+      const status = document.createElement('p');
+      status.textContent = `対応状態：${report.status}`;
+
+      item.append(reportId, createdAt, condition, attendance, contactRequest, status);
+      serverReportList.append(item);
+    });
+
+    serverReportMessage.hidden = true;
+  } catch {
+    serverReportMessage.textContent =
+      'サーバーから読み込めません。http://localhost:3000 で開き、サーバーを起動してください。';
+  }
 }
 
 // フォームのボタンが押されたときに実行する処理です。
@@ -224,6 +297,7 @@ resetButton.addEventListener('click', () => {
 openTeacherButton.addEventListener('click', () => {
   studentScreen.hidden = true;
   teacherScreen.hidden = false;
+  loadServerReports();
 });
 
 openStudentButton.addEventListener('click', () => {

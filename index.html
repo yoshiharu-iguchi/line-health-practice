@@ -71,6 +71,13 @@
           <button id="reset-button" class="reset-button" type="button">練習用データをすべて初期化する</button>
           <p id="empty-list-message">まだ追加された練習用の報告はありません。</p>
           <ul id="report-list" aria-live="polite"></ul>
+
+          <section aria-labelledby="server-reports-title">
+            <h3 id="server-reports-title">サーバーから読み込んだ練習用報告</h3>
+            <p>これは読み取り専用の一覧です。今はlocalStorageの一覧と別に表示します。</p>
+            <p id="server-report-message" aria-live="polite">教員用画面を開くと読み込みます。</p>
+            <ul id="server-report-list"></ul>
+          </section>
         </section>
         <button id="open-student-button" class="screen-switch" type="button">学生用画面へ戻る</button>
       </section>
