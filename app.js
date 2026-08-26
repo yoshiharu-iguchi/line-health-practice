@@ -110,6 +110,39 @@ function formatServerDateTime(createdAt) {
   });
 }
 
+// サーバーに、指定した報告の対応状態だけを書き換えるようお願いします。
+async function updateServerReportStatus(report, statusButton) {
+  const nextStatus = report.status === '未対応' ? '対応済み' : '未対応';
+  statusButton.disabled = true;
+  statusButton.textContent = '更新中です。';
+
+  try {
+    const response = await fetch(
+      `/api/reports/${encodeURIComponent(report.id)}/status`,
+      {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: nextStatus })
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error('サーバーが状態を更新できませんでした。');
+    }
+
+    // サーバーから最新の一覧を読み直して、画面の表示をそろえます。
+    await loadServerReports();
+  } catch {
+    statusButton.disabled = false;
+    statusButton.textContent = report.status === '未対応'
+      ? '対応済みにする'
+      : '未対応へ戻す';
+    serverReportMessage.hidden = false;
+    serverReportMessage.textContent =
+      '対応状態を更新できませんでした。http://localhost:3000 で開き、サーバーが起動しているか確認してください。';
+  }
+}
+
 // GET APIへ一覧をお願いし、サーバーにある匿名練習報告を別の一覧へ表示します。
 async function loadServerReports() {
   serverReportList.innerHTML = '';
@@ -151,7 +184,17 @@ async function loadServerReports() {
       const status = document.createElement('p');
       status.textContent = `対応状態：${report.status}`;
 
-      item.append(reportId, createdAt, condition, attendance, contactRequest, status);
+      const statusButton = document.createElement('button');
+      statusButton.type = 'button';
+      statusButton.className = 'status-button';
+      statusButton.textContent = report.status === '未対応'
+        ? '対応済みにする'
+        : '未対応へ戻す';
+      statusButton.addEventListener('click', () => {
+        updateServerReportStatus(report, statusButton);
+      });
+
+      item.append(reportId, createdAt, condition, attendance, contactRequest, status, statusButton);
       serverReportList.append(item);
     });
 
