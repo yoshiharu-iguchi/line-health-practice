@@ -17,6 +17,7 @@ const serverReportList = document.querySelector('#server-report-list');
 const serverReportMessage = document.querySelector('#server-report-message');
 const sendToServerButton = document.querySelector('#send-to-server-button');
 const serverSendMessage = document.querySelector('#server-send-message');
+const serverResetButton = document.querySelector('#server-reset-button');
 
 // localStorage内で、この練習用アプリだけが使う名前です。
 const STORAGE_KEY = 'line-health-practice-data';
@@ -385,6 +386,43 @@ openTeacherButton.addEventListener('click', () => {
 openStudentButton.addEventListener('click', () => {
   teacherScreen.hidden = true;
   studentScreen.hidden = false;
+});
+
+// サーバー内の匿名練習報告だけを、確認後に初期化します。
+serverResetButton.addEventListener('click', async () => {
+  const shouldReset = window.confirm(
+    'サーバーに一時保存された匿名の練習報告をすべて初期化します。よろしいですか？'
+  );
+
+  if (!shouldReset) {
+    return;
+  }
+
+  serverResetButton.disabled = true;
+  serverResetButton.textContent = '初期化中です。';
+  serverReportMessage.hidden = false;
+  serverReportMessage.textContent = 'サーバーの練習報告を初期化しています。';
+
+  try {
+    const response = await fetch('/api/reports', { method: 'DELETE' });
+
+    if (!response.ok) {
+      throw new Error('サーバーが初期化できませんでした。');
+    }
+
+    const result = await response.json();
+    await loadServerReports();
+    serverReportMessage.hidden = false;
+    serverReportMessage.textContent =
+      `サーバーの練習報告を${result.deletedCount}件初期化しました。`;
+  } catch {
+    serverReportMessage.hidden = false;
+    serverReportMessage.textContent =
+      '初期化できませんでした。http://localhost:3000 で開き、サーバーが起動しているか確認してください。';
+  } finally {
+    serverResetButton.disabled = false;
+    serverResetButton.textContent = 'サーバーの練習報告を初期化する';
+  }
 });
 
 // ページを開いた直後にも、保存済みの一覧と絞り込み条件を表示します。
