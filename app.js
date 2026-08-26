@@ -15,6 +15,8 @@ const openTeacherButton = document.querySelector('#open-teacher-button');
 const openStudentButton = document.querySelector('#open-student-button');
 const serverReportList = document.querySelector('#server-report-list');
 const serverReportMessage = document.querySelector('#server-report-message');
+const sendToServerButton = document.querySelector('#send-to-server-button');
+const serverSendMessage = document.querySelector('#server-send-message');
 
 // localStorage内で、この練習用アプリだけが使う名前です。
 const STORAGE_KEY = 'line-health-practice-data';
@@ -43,6 +45,7 @@ function loadSavedData() {
 const savedData = loadSavedData();
 const reports = savedData.reports;
 let selectedFilter = savedData.selectedFilter;
+let confirmedReport;
 
 // 現在の一覧と絞り込み条件を、ブラウザ内だけに保存します。
 function saveData() {
@@ -165,15 +168,19 @@ form.addEventListener('submit', (event) => {
   event.preventDefault();
 
   // 選択欄の現在の値を、確認欄へ表示します。
-  document.querySelector('#result-condition').textContent =
-    document.querySelector('#condition').value;
-  document.querySelector('#result-attendance').textContent =
-    document.querySelector('#attendance').value;
-  document.querySelector('#result-contact-request').textContent =
-    document.querySelector('#contact-request').value;
+  confirmedReport = {
+    condition: document.querySelector('#condition').value,
+    attendance: document.querySelector('#attendance').value,
+    contactRequest: document.querySelector('#contact-request').value
+  };
+
+  document.querySelector('#result-condition').textContent = confirmedReport.condition;
+  document.querySelector('#result-attendance').textContent = confirmedReport.attendance;
+  document.querySelector('#result-contact-request').textContent = confirmedReport.contactRequest;
 
   // hidden属性を外して、確認欄を画面に表示します。
   confirmation.hidden = false;
+  serverSendMessage.textContent = '';
 });
 
 // 配列の内容を、教員用の一覧として画面へ表示する関数です。
@@ -266,6 +273,38 @@ addToListButton.addEventListener('click', () => {
 
   saveData();
   renderReports();
+});
+
+// 確認済みの3項目だけを、JSONとして練習用サーバーへ送ります。
+sendToServerButton.addEventListener('click', async () => {
+  if (!confirmedReport) {
+    serverSendMessage.textContent = '先に選択内容を確認してください。';
+    return;
+  }
+
+  sendToServerButton.disabled = true;
+  sendToServerButton.textContent = '送信中です。';
+  serverSendMessage.textContent = 'サーバーへ送信しています。';
+
+  try {
+    const response = await fetch('/api/reports', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(confirmedReport)
+    });
+
+    if (response.status !== 201) {
+      throw new Error('サーバーが報告を受け取りませんでした。');
+    }
+
+    serverSendMessage.textContent = 'サーバーへ練習報告を送信しました。';
+  } catch {
+    serverSendMessage.textContent =
+      '送信できませんでした。http://localhost:3000 で開き、サーバーが起動しているか確認してください。';
+  } finally {
+    sendToServerButton.disabled = false;
+    sendToServerButton.textContent = 'サーバーへ練習報告を送る';
+  }
 });
 
 // 絞り込みボタンが押されたら、条件を変更して一覧を表示し直します。
