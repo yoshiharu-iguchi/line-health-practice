@@ -4,3 +4,6 @@
 # 将来、接続用の秘密情報を置く場合にGitへ記録しない
 .env
 .env.*
+
+# 匿名の練習データを含むSQLiteファイルはGitHubへ送らない
+data/*.sqlite

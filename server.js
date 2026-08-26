@@ -1,15 +1,16 @@
-// Node.js標準の機能だけで動く、学習用のローカルサーバーです。
-// この段階ではLINE、Webhook、データベース、外部公開は使用しません。
+// Node.js標準の機能で動く、学習用のローカルサーバーです。
+// 匿名の練習報告だけをSQLiteへ保存します。LINE、Webhook、外部公開は使用しません。
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
+import {
+  createReport,
+  deleteAllReports,
+  listReports,
+  updateReportStatus
+} from './db.js';
 
 const PORT = 3000;
-
-// サーバーが動いている間だけ、匿名の練習報告を入れておく箱です。
-// サーバーを停止すると、この配列の中身は消えます。
-const reports = [];
-let nextReportId = 1;
 
 const validConditions = ['良好', '普通', '不良'];
 const validAttendances = ['参加できる', '相談したい', '参加が難しい'];
@@ -62,18 +63,17 @@ function isValidReport(report) {
 const server = createServer(async (request, response) => {
   const requestUrl = new URL(request.url, `http://${request.headers.host}`);
 
-  // 練習用のAPIです。GETで報告一覧を求められたら、空のJSON配列を返します。
-  // まだPOSTによる受信や保存は行いません。
+  // GETで報告一覧を求められたら、SQLiteに保存された匿名練習報告を返します。
   if (request.method === 'GET' && requestUrl.pathname === '/api/reports') {
     response.writeHead(200, {
       'Content-Type': 'application/json; charset=utf-8',
       'Cache-Control': 'no-store'
     });
-    response.end(JSON.stringify(reports));
+    response.end(JSON.stringify(listReports()));
     return;
   }
 
-  // 練習用のPOST APIです。匿名の練習報告だけを一時的に受け取ります。
+  // 練習用のPOST APIです。匿名の練習報告だけをSQLiteへ保存します。
   if (request.method === 'POST' && requestUrl.pathname === '/api/reports') {
     try {
       const requestBody = await readRequestBody(request);
@@ -85,17 +85,8 @@ const server = createServer(async (request, response) => {
         return;
       }
 
-      const practiceReport = {
-        // 整理番号、受取時刻、最初の対応状態はサーバーが決めます。
-        id: `practice-report-${nextReportId}`,
-        createdAt: new Date().toISOString(),
-        status: '未対応',
-        condition: report.condition,
-        attendance: report.attendance,
-        contactRequest: report.contactRequest
-      };
-      reports.push(practiceReport);
-      nextReportId += 1;
+      // 整理番号、受取時刻、最初の対応状態はdb.jsが決めます。
+      const practiceReport = createReport(report);
 
       response.writeHead(201, { 'Content-Type': 'application/json; charset=utf-8' });
       response.end(JSON.stringify(practiceReport));
@@ -122,7 +113,7 @@ const server = createServer(async (request, response) => {
       }
 
       const reportId = decodeURIComponent(statusEndpoint[1]);
-      const report = reports.find((savedReport) => savedReport.id === reportId);
+      const report = updateReportStatus(reportId, status);
 
       if (!report) {
         response.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
@@ -130,7 +121,6 @@ const server = createServer(async (request, response) => {
         return;
       }
 
-      report.status = status;
       response.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
       response.end(JSON.stringify(report));
     } catch {
@@ -140,11 +130,9 @@ const server = createServer(async (request, response) => {
     return;
   }
 
-  // 練習用のDELETE APIです。サーバーのメモリ内にある匿名報告だけを空にします。
+  // 練習用のDELETE APIです。SQLiteにある匿名練習報告だけを空にします。
   if (request.method === 'DELETE' && requestUrl.pathname === '/api/reports') {
-    const deletedCount = reports.length;
-    reports.splice(0, reports.length);
-    nextReportId = 1;
+    const deletedCount = deleteAllReports();
 
     response.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     response.end(JSON.stringify({ deletedCount }));
