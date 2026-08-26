@@ -4,7 +4,7 @@ const confirmation = document.querySelector('#confirmation');
 const addToListButton = document.querySelector('#add-to-list-button');
 const reportList = document.querySelector('#report-list');
 const emptyListMessage = document.querySelector('#empty-list-message');
-const filterButtons = document.querySelectorAll('.filter-button');
+const filterButtons = document.querySelectorAll('#local-filter-buttons .filter-button');
 const resetButton = document.querySelector('#reset-button');
 const totalCount = document.querySelector('#total-count');
 const pendingCount = document.querySelector('#pending-count');
@@ -18,6 +18,10 @@ const serverReportMessage = document.querySelector('#server-report-message');
 const sendToServerButton = document.querySelector('#send-to-server-button');
 const serverSendMessage = document.querySelector('#server-send-message');
 const serverResetButton = document.querySelector('#server-reset-button');
+const serverTotalCount = document.querySelector('#server-total-count');
+const serverPendingCount = document.querySelector('#server-pending-count');
+const serverCompletedCount = document.querySelector('#server-completed-count');
+const serverFilterButtons = document.querySelectorAll('#server-filter-buttons .filter-button');
 
 // localStorage内で、この練習用アプリだけが使う名前です。
 const STORAGE_KEY = 'line-health-practice-data';
@@ -47,6 +51,8 @@ const savedData = loadSavedData();
 const reports = savedData.reports;
 let selectedFilter = savedData.selectedFilter;
 let confirmedReport;
+let serverReports = [];
+let selectedServerFilter = 'all';
 
 // 現在の一覧と絞り込み条件を、ブラウザ内だけに保存します。
 function saveData() {
@@ -144,7 +150,72 @@ async function updateServerReportStatus(report, statusButton) {
   }
 }
 
-// GET APIへ一覧をお願いし、サーバーにある匿名練習報告を別の一覧へ表示します。
+function updateServerFilterButtons() {
+  serverFilterButtons.forEach((filterButton) => {
+    const isActive = filterButton.dataset.serverFilter === selectedServerFilter;
+    filterButton.classList.toggle('is-active', isActive);
+    filterButton.setAttribute('aria-pressed', String(isActive));
+  });
+}
+
+// サーバーから受け取った報告を、集計と絞り込み条件に合わせて画面へ表示します。
+function renderServerReports() {
+  serverReportList.innerHTML = '';
+  serverTotalCount.textContent = serverReports.length;
+  serverPendingCount.textContent =
+    serverReports.filter((report) => report.status === '未対応').length;
+  serverCompletedCount.textContent =
+    serverReports.filter((report) => report.status === '対応済み').length;
+
+  const visibleServerReports = selectedServerFilter === 'all'
+    ? serverReports
+    : serverReports.filter((report) => report.status === selectedServerFilter);
+
+  if (visibleServerReports.length === 0) {
+    serverReportMessage.hidden = false;
+    serverReportMessage.textContent = serverReports.length === 0
+      ? 'サーバーには練習用の報告がありません。'
+      : 'この条件に一致するサーバーの練習用報告はありません。';
+    updateServerFilterButtons();
+    return;
+  }
+
+  visibleServerReports.forEach((report) => {
+    const item = document.createElement('li');
+    item.className = 'report-item';
+
+    const reportId = document.createElement('p');
+    reportId.textContent = `整理番号：${report.id}`;
+    const createdAt = document.createElement('p');
+    createdAt.textContent = `報告日時：${formatServerDateTime(report.createdAt)}`;
+    const condition = document.createElement('p');
+    condition.textContent = `体調：${report.condition}`;
+    const attendance = document.createElement('p');
+    attendance.textContent = `予定への参加：${report.attendance}`;
+    const contactRequest = document.createElement('p');
+    contactRequest.textContent = `教員からの連絡希望：${report.contactRequest}`;
+    const status = document.createElement('p');
+    status.textContent = `対応状態：${report.status}`;
+
+    const statusButton = document.createElement('button');
+    statusButton.type = 'button';
+    statusButton.className = 'status-button';
+    statusButton.textContent = report.status === '未対応'
+      ? '対応済みにする'
+      : '未対応へ戻す';
+    statusButton.addEventListener('click', () => {
+      updateServerReportStatus(report, statusButton);
+    });
+
+    item.append(reportId, createdAt, condition, attendance, contactRequest, status, statusButton);
+    serverReportList.append(item);
+  });
+
+  serverReportMessage.hidden = true;
+  updateServerFilterButtons();
+}
+
+// GET APIへ一覧をお願いし、サーバーにある匿名練習報告を受け取ります。
 async function loadServerReports() {
   serverReportList.innerHTML = '';
   serverReportMessage.hidden = false;
@@ -157,49 +228,14 @@ async function loadServerReports() {
       throw new Error('サーバーから正しい返事が届きませんでした。');
     }
 
-    const serverReports = await response.json();
+    const receivedReports = await response.json();
 
-    if (!Array.isArray(serverReports)) {
+    if (!Array.isArray(receivedReports)) {
       throw new Error('一覧の形式が正しくありません。');
     }
 
-    if (serverReports.length === 0) {
-      serverReportMessage.textContent = 'サーバーには練習用の報告がありません。';
-      return;
-    }
-
-    serverReports.forEach((report) => {
-      const item = document.createElement('li');
-      item.className = 'report-item';
-
-      const reportId = document.createElement('p');
-      reportId.textContent = `整理番号：${report.id}`;
-      const createdAt = document.createElement('p');
-      createdAt.textContent = `報告日時：${formatServerDateTime(report.createdAt)}`;
-      const condition = document.createElement('p');
-      condition.textContent = `体調：${report.condition}`;
-      const attendance = document.createElement('p');
-      attendance.textContent = `予定への参加：${report.attendance}`;
-      const contactRequest = document.createElement('p');
-      contactRequest.textContent = `教員からの連絡希望：${report.contactRequest}`;
-      const status = document.createElement('p');
-      status.textContent = `対応状態：${report.status}`;
-
-      const statusButton = document.createElement('button');
-      statusButton.type = 'button';
-      statusButton.className = 'status-button';
-      statusButton.textContent = report.status === '未対応'
-        ? '対応済みにする'
-        : '未対応へ戻す';
-      statusButton.addEventListener('click', () => {
-        updateServerReportStatus(report, statusButton);
-      });
-
-      item.append(reportId, createdAt, condition, attendance, contactRequest, status, statusButton);
-      serverReportList.append(item);
-    });
-
-    serverReportMessage.hidden = true;
+    serverReports = receivedReports;
+    renderServerReports();
   } catch {
     serverReportMessage.textContent =
       'サーバーから読み込めません。http://localhost:3000 で開き、サーバーを起動してください。';
@@ -357,6 +393,14 @@ filterButtons.forEach((button) => {
     selectedFilter = button.dataset.filter;
     saveData();
     renderReports();
+  });
+});
+
+// サーバー専用の絞り込みは、受け取った一覧だけを表示し直します。
+serverFilterButtons.forEach((button) => {
+  button.addEventListener('click', () => {
+    selectedServerFilter = button.dataset.serverFilter;
+    renderServerReports();
   });
 });
 

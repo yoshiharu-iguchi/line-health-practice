@@ -65,7 +65,7 @@
             <p>未対応の報告数：<strong id="pending-count">0</strong></p>
             <p>対応済みの報告数：<strong id="completed-count">0</strong></p>
           </section>
-          <div class="filter-buttons" aria-label="対応状態で絞り込む">
+          <div id="local-filter-buttons" class="filter-buttons" aria-label="対応状態で絞り込む">
             <button class="filter-button is-active" type="button" data-filter="all" aria-pressed="true">全て表示</button>
             <button class="filter-button" type="button" data-filter="未対応" aria-pressed="false">未対応のみ</button>
             <button class="filter-button" type="button" data-filter="対応済み" aria-pressed="false">対応済みのみ</button>
@@ -77,6 +77,16 @@
           <section aria-labelledby="server-reports-title">
             <h3 id="server-reports-title">サーバーから読み込んだ練習用報告</h3>
             <p>これは読み取り専用の一覧です。今はlocalStorageの一覧と別に表示します。</p>
+            <section class="summary server-summary" aria-label="サーバー報告の集計">
+              <p>全ての報告数：<strong id="server-total-count">0</strong></p>
+              <p>未対応の報告数：<strong id="server-pending-count">0</strong></p>
+              <p>対応済みの報告数：<strong id="server-completed-count">0</strong></p>
+            </section>
+            <div id="server-filter-buttons" class="filter-buttons" aria-label="サーバー報告を対応状態で絞り込む">
+              <button class="filter-button is-active" type="button" data-server-filter="all" aria-pressed="true">全て表示</button>
+              <button class="filter-button" type="button" data-server-filter="未対応" aria-pressed="false">未対応のみ</button>
+              <button class="filter-button" type="button" data-server-filter="対応済み" aria-pressed="false">対応済みのみ</button>
+            </div>
             <button id="server-reset-button" class="reset-button" type="button">サーバーの練習報告を初期化する</button>
             <p id="server-report-message" aria-live="polite">教員用画面を開くと読み込みます。</p>
             <ul id="server-report-list"></ul>

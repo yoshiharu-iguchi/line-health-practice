@@ -96,6 +96,11 @@ button:focus-visible {
   list-style: none;
 }
 
+#server-report-list {
+  padding-left: 0;
+  list-style: none;
+}
+
 .report-item {
   margin-top: 12px;
   padding: 14px;
@@ -154,6 +159,10 @@ button:focus-visible {
 .summary strong {
   display: block;
   font-size: 1.5rem;
+}
+
+.server-summary p {
+  background: #edf8f0;
 }
 
 .filter-button {
