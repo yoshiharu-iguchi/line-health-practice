@@ -184,6 +184,16 @@ function renderServerReports() {
     const item = document.createElement('li');
     item.className = 'report-item';
 
+    const needsAttention = report.condition === '不良'
+      || report.contactRequest === '希望する';
+
+    if (needsAttention) {
+      const attentionBadge = document.createElement('strong');
+      attentionBadge.className = 'attention-badge';
+      attentionBadge.textContent = '要確認';
+      item.append(attentionBadge);
+    }
+
     const reportId = document.createElement('p');
     reportId.textContent = `整理番号：${report.id}`;
     const createdAt = document.createElement('p');

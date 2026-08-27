@@ -60,23 +60,10 @@
           <h2 id="teacher-title">教員用：報告を確認する</h2>
           <p>ページを開いている間だけ、匿名の練習用データを表示します。</p>
           <p class="teacher-notice">これは練習用の画面切替であり、教員用画面を保護するログイン機能ではありません。</p>
-          <section class="summary" aria-label="報告の集計">
-            <p>全ての報告数：<strong id="total-count">0</strong></p>
-            <p>未対応の報告数：<strong id="pending-count">0</strong></p>
-            <p>対応済みの報告数：<strong id="completed-count">0</strong></p>
-          </section>
-          <div id="local-filter-buttons" class="filter-buttons" aria-label="対応状態で絞り込む">
-            <button class="filter-button is-active" type="button" data-filter="all" aria-pressed="true">全て表示</button>
-            <button class="filter-button" type="button" data-filter="未対応" aria-pressed="false">未対応のみ</button>
-            <button class="filter-button" type="button" data-filter="対応済み" aria-pressed="false">対応済みのみ</button>
-          </div>
-          <button id="reset-button" class="reset-button" type="button">練習用データをすべて初期化する</button>
-          <p id="empty-list-message">まだ追加された練習用の報告はありません。</p>
-          <ul id="report-list" aria-live="polite"></ul>
-
-          <section aria-labelledby="server-reports-title">
-            <h3 id="server-reports-title">サーバーから読み込んだ練習用報告</h3>
-            <p>これは読み取り専用の一覧です。今はlocalStorageの一覧と別に表示します。</p>
+          <section class="server-management" aria-labelledby="server-reports-title">
+            <h3 id="server-reports-title">サーバー側の報告管理（SQLite）</h3>
+            <p>ここが現在の主な管理一覧です。匿名の練習用報告を、ローカルサーバーとSQLiteから読み込みます。</p>
+            <p class="teacher-notice">「要確認」は練習用の確認補助です。緊急性を自動判定する機能ではありません。</p>
             <section class="summary server-summary" aria-label="サーバー報告の集計">
               <p>全ての報告数：<strong id="server-total-count">0</strong></p>
               <p>未対応の報告数：<strong id="server-pending-count">0</strong></p>
@@ -91,6 +78,24 @@
             <p id="server-report-message" aria-live="polite">教員用画面を開くと読み込みます。</p>
             <ul id="server-report-list"></ul>
           </section>
+
+          <details class="legacy-local-reports">
+            <summary>ブラウザ内の以前の練習データ（localStorage）</summary>
+            <p>この部分は、これまでブラウザ内に保存していた練習データです。サーバー側の一覧とは別に残しています。</p>
+            <section class="summary" aria-label="ブラウザ内の報告の集計">
+              <p>全ての報告数：<strong id="total-count">0</strong></p>
+              <p>未対応の報告数：<strong id="pending-count">0</strong></p>
+              <p>対応済みの報告数：<strong id="completed-count">0</strong></p>
+            </section>
+            <div id="local-filter-buttons" class="filter-buttons" aria-label="ブラウザ内の報告を対応状態で絞り込む">
+              <button class="filter-button is-active" type="button" data-filter="all" aria-pressed="true">全て表示</button>
+              <button class="filter-button" type="button" data-filter="未対応" aria-pressed="false">未対応のみ</button>
+              <button class="filter-button" type="button" data-filter="対応済み" aria-pressed="false">対応済みのみ</button>
+            </div>
+            <button id="reset-button" class="reset-button" type="button">ブラウザ内の練習用データをすべて初期化する</button>
+            <p id="empty-list-message">まだ追加された練習用の報告はありません。</p>
+            <ul id="report-list" aria-live="polite"></ul>
+          </details>
         </section>
         <button id="open-student-button" class="screen-switch" type="button">学生用画面へ戻る</button>
       </section>

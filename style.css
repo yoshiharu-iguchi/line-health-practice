@@ -165,6 +165,27 @@ button:focus-visible {
   background: #edf8f0;
 }
 
+.server-management {
+  padding: 4px 16px 20px;
+  border: 2px solid #b8dfc3;
+  border-radius: 10px;
+  background: #fbfffc;
+}
+
+.legacy-local-reports {
+  margin-top: 24px;
+  padding: 14px 16px;
+  border: 1px solid #cbd5dc;
+  border-radius: 10px;
+  background: #f8fafb;
+}
+
+.legacy-local-reports summary {
+  cursor: pointer;
+  color: var(--navy);
+  font-weight: 700;
+}
+
 .filter-button {
   margin-top: 0;
   background: #fff;
