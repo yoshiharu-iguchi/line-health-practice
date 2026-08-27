@@ -171,7 +171,22 @@ function renderServerReports() {
     ? serverReports
     : serverReports.filter((report) => report.status === selectedServerFilter);
 
-  if (visibleServerReports.length === 0) {
+  // 表示する分だけを、未対応を先・同じ状態なら新しい日時を先に並べます。
+  const sortedVisibleServerReports = [...visibleServerReports].sort((first, second) => {
+    const statusOrder = {
+      未対応: 0,
+      対応済み: 1
+    };
+    const statusDifference = statusOrder[first.status] - statusOrder[second.status];
+
+    if (statusDifference !== 0) {
+      return statusDifference;
+    }
+
+    return new Date(second.createdAt) - new Date(first.createdAt);
+  });
+
+  if (sortedVisibleServerReports.length === 0) {
     serverReportMessage.hidden = false;
     serverReportMessage.textContent = serverReports.length === 0
       ? 'サーバーには練習用の報告がありません。'
@@ -180,7 +195,7 @@ function renderServerReports() {
     return;
   }
 
-  visibleServerReports.forEach((report) => {
+  sortedVisibleServerReports.forEach((report) => {
     const item = document.createElement('li');
     item.className = 'report-item';
 
