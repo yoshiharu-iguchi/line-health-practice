@@ -18,6 +18,7 @@ const serverReportMessage = document.querySelector('#server-report-message');
 const sendToServerButton = document.querySelector('#send-to-server-button');
 const serverSendMessage = document.querySelector('#server-send-message');
 const serverResetButton = document.querySelector('#server-reset-button');
+const serverReloadButton = document.querySelector('#server-reload-button');
 const serverTotalCount = document.querySelector('#server-total-count');
 const serverPendingCount = document.querySelector('#server-pending-count');
 const serverCompletedCount = document.querySelector('#server-completed-count');
@@ -242,6 +243,8 @@ function renderServerReports() {
 
 // GET APIへ一覧をお願いし、サーバーにある匿名練習報告を受け取ります。
 async function loadServerReports() {
+  serverReloadButton.disabled = true;
+  serverReloadButton.textContent = '読み込み中です。';
   serverReportList.innerHTML = '';
   serverReportMessage.hidden = false;
   serverReportMessage.textContent = 'サーバーから読み込んでいます。';
@@ -264,6 +267,9 @@ async function loadServerReports() {
   } catch {
     serverReportMessage.textContent =
       'サーバーから読み込めません。http://localhost:3000 で開き、サーバーを起動してください。';
+  } finally {
+    serverReloadButton.disabled = false;
+    serverReloadButton.textContent = 'サーバー一覧を読み直す';
   }
 }
 
@@ -427,6 +433,11 @@ serverFilterButtons.forEach((button) => {
     selectedServerFilter = button.dataset.serverFilter;
     renderServerReports();
   });
+});
+
+// 読み直しボタンでは、GET APIへもう一度一覧をお願いします。
+serverReloadButton.addEventListener('click', () => {
+  loadServerReports();
 });
 
 // 初期化では、このアプリ専用キーのデータだけを削除します。
