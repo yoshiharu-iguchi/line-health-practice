@@ -168,9 +168,18 @@ function renderServerReports() {
   serverCompletedCount.textContent =
     serverReports.filter((report) => report.status === '対応済み').length;
 
-  const visibleServerReports = selectedServerFilter === 'all'
-    ? serverReports
-    : serverReports.filter((report) => report.status === selectedServerFilter);
+  let visibleServerReports = serverReports;
+
+  if (selectedServerFilter === '要確認') {
+    // 「不良」または「希望する」の、どちらかに当てはまる報告だけを残します。
+    visibleServerReports = serverReports.filter((report) => (
+      report.condition === '不良' || report.contactRequest === '希望する'
+    ));
+  } else if (selectedServerFilter !== 'all') {
+    visibleServerReports = serverReports.filter(
+      (report) => report.status === selectedServerFilter
+    );
+  }
 
   // 表示する分だけを、未対応を先・同じ状態なら新しい日時を先に並べます。
   const sortedVisibleServerReports = [...visibleServerReports].sort((first, second) => {
