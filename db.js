@@ -16,11 +16,22 @@ database.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     created_at TEXT NOT NULL,
     status TEXT NOT NULL,
+    status_changed_at TEXT,
     condition TEXT NOT NULL,
     attendance TEXT NOT NULL,
     contact_request TEXT NOT NULL
   )
 `);
+
+// すでに作成済みの表にも、新しい日時の欄だけを追加します。
+const reportColumns = database.prepare('PRAGMA table_info(reports)').all();
+const hasStatusChangedAtColumn = reportColumns.some(
+  (column) => column.name === 'status_changed_at'
+);
+
+if (!hasStatusChangedAtColumn) {
+  database.exec('ALTER TABLE reports ADD COLUMN status_changed_at TEXT');
+}
 
 function toReport(row) {
   if (!row) {
@@ -31,6 +42,7 @@ function toReport(row) {
     id: `practice-report-${row.id}`,
     createdAt: row.created_at,
     status: row.status,
+    statusChangedAt: row.status_changed_at,
     condition: row.condition,
     attendance: row.attendance,
     contactRequest: row.contact_request
@@ -54,8 +66,8 @@ export function createReport({ condition, attendance, contactRequest }) {
   const createdAt = new Date().toISOString();
   const result = database
     .prepare(`
-      INSERT INTO reports (created_at, status, condition, attendance, contact_request)
-      VALUES (?, '未対応', ?, ?, ?)
+      INSERT INTO reports (created_at, status, status_changed_at, condition, attendance, contact_request)
+      VALUES (?, '未対応', NULL, ?, ?, ?)
     `)
     .run(createdAt, condition, attendance, contactRequest);
 
@@ -68,14 +80,15 @@ export function createReport({ condition, attendance, contactRequest }) {
 
 export function updateReportStatus(reportId, status) {
   const databaseId = toDatabaseId(reportId);
+  const statusChangedAt = new Date().toISOString();
 
   if (!databaseId) {
     return undefined;
   }
 
   const result = database
-    .prepare('UPDATE reports SET status = ? WHERE id = ?')
-    .run(status, databaseId);
+    .prepare('UPDATE reports SET status = ?, status_changed_at = ? WHERE id = ?')
+    .run(status, statusChangedAt, databaseId);
 
   if (result.changes === 0) {
     return undefined;

@@ -233,6 +233,10 @@ function renderServerReports() {
     contactRequest.textContent = `教員からの連絡希望：${report.contactRequest}`;
     const status = document.createElement('p');
     status.textContent = `対応状態：${report.status}`;
+    const statusChangedAt = document.createElement('p');
+    statusChangedAt.textContent = report.statusChangedAt
+      ? `対応状態を変更した日時：${formatServerDateTime(report.statusChangedAt)}`
+      : '対応状態を変更した日時：変更なし';
 
     const statusButton = document.createElement('button');
     statusButton.type = 'button';
@@ -244,7 +248,16 @@ function renderServerReports() {
       updateServerReportStatus(report, statusButton);
     });
 
-    item.append(reportId, createdAt, condition, attendance, contactRequest, status, statusButton);
+    item.append(
+      reportId,
+      createdAt,
+      condition,
+      attendance,
+      contactRequest,
+      status,
+      statusChangedAt,
+      statusButton
+    );
     serverReportList.append(item);
   });
 
