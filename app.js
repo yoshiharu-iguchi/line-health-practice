@@ -19,6 +19,8 @@ const sendToServerButton = document.querySelector('#send-to-server-button');
 const serverSendMessage = document.querySelector('#server-send-message');
 const serverResetButton = document.querySelector('#server-reset-button');
 const serverReloadButton = document.querySelector('#server-reload-button');
+const serverHealthButton = document.querySelector('#server-health-button');
+const serverHealthMessage = document.querySelector('#server-health-message');
 const serverTotalCount = document.querySelector('#server-total-count');
 const serverPendingCount = document.querySelector('#server-pending-count');
 const serverCompletedCount = document.querySelector('#server-completed-count');
@@ -282,6 +284,35 @@ async function loadServerReports() {
   }
 }
 
+// health check APIへ、サーバーが返事できるかを確認します。
+async function checkServerHealth() {
+  serverHealthButton.disabled = true;
+  serverHealthButton.textContent = '確認中です。';
+  serverHealthMessage.textContent = 'サーバーの状態を確認しています。';
+
+  try {
+    const response = await fetch('/api/health');
+
+    if (!response.ok) {
+      throw new Error('サーバーから正しい返事が届きませんでした。');
+    }
+
+    const health = await response.json();
+
+    if (health.status !== 'ok') {
+      throw new Error('サーバーの状態が確認できませんでした。');
+    }
+
+    serverHealthMessage.textContent = 'サーバーは動いています。';
+  } catch {
+    serverHealthMessage.textContent =
+      'サーバーに接続できません。http://localhost:3000/ で開き、node server.js でサーバーが起動しているか確認してください。';
+  } finally {
+    serverHealthButton.disabled = false;
+    serverHealthButton.textContent = 'サーバーの状態を確認する';
+  }
+}
+
 // フォームのボタンが押されたときに実行する処理です。
 form.addEventListener('submit', (event) => {
   // 本来のフォーム送信によるページ再読み込みを止めます。
@@ -447,6 +478,10 @@ serverFilterButtons.forEach((button) => {
 // 読み直しボタンでは、GET APIへもう一度一覧をお願いします。
 serverReloadButton.addEventListener('click', () => {
   loadServerReports();
+});
+
+serverHealthButton.addEventListener('click', () => {
+  checkServerHealth();
 });
 
 // 初期化では、このアプリ専用キーのデータだけを削除します。

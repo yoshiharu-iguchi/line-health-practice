@@ -64,6 +64,8 @@
             <h3 id="server-reports-title">サーバー側の報告管理（SQLite）</h3>
             <p>ここが現在の主な管理一覧です。匿名の練習用報告を、ローカルサーバーとSQLiteから読み込みます。</p>
             <p class="teacher-notice">「要確認」は練習用の確認補助です。緊急性を自動判定する機能ではありません。</p>
+            <button id="server-health-button" type="button">サーバーの状態を確認する</button>
+            <p id="server-health-message" aria-live="polite"></p>
             <section class="summary server-summary" aria-label="サーバー報告の集計">
               <p>全ての報告数：<strong id="server-total-count">0</strong></p>
               <p>未対応の報告数：<strong id="server-pending-count">0</strong></p>
