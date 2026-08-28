@@ -64,6 +64,13 @@ function isValidReport(report) {
 const server = createServer(async (request, response) => {
   const requestUrl = new URL(request.url, `http://${request.headers.host}`);
 
+  // サーバーが返事をできるか確認するための、個人情報を扱わないAPIです。
+  if (request.method === 'GET' && requestUrl.pathname === '/api/health') {
+    response.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    response.end(JSON.stringify({ status: 'ok' }));
+    return;
+  }
+
   // GETで報告一覧を求められたら、SQLiteに保存された匿名練習報告を返します。
   if (request.method === 'GET' && requestUrl.pathname === '/api/reports') {
     response.writeHead(200, {
