@@ -10,7 +10,8 @@ import {
   updateReportStatus
 } from './db.js';
 
-const PORT = 3000;
+// 環境変数でPORTが渡されたら使い、ない場合は練習用の3000番を使います。
+const PORT = Number(process.env.PORT) || 3000;
 
 const validConditions = ['良好', '普通', '不良'];
 const validAttendances = ['参加できる', '相談したい', '参加が難しい'];

@@ -5,5 +5,8 @@
 .env
 .env.*
 
+# 設定名だけを書く見本は、学習用にGitへ記録する
+!.env.example
+
 # 匿名の練習データを含むSQLiteファイルはGitHubへ送らない
 data/*.sqlite
